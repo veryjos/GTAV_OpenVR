@@ -24,12 +24,12 @@ namespace OVRInject {
 		_Out_				void				**pFactory
 	)
 	{
-		LOGWNDF("Called CreateDXGIFactory : Original 0x%p\n", Original_CreateDXGIFactory);
+		LOGSTRF("Called CreateDXGIFactory : Original 0x%p\n", Original_CreateDXGIFactory);
 
 		if (pCreateDXGIFactory1 == nullptr)
 		{
 			pCreateDXGIFactory1 = GetProcAddress(dxgiModule, "CreateDXGIFactory1");
-			LOGWNDF("DXGIFACTORTY1: 0x%p\n", pCreateDXGIFactory1);
+			LOGSTRF("DXGIFACTORTY1: 0x%p\n", pCreateDXGIFactory1);
 		}
 
 		IDXGIFactory1 *nFactory;
@@ -39,11 +39,11 @@ namespace OVRInject {
 			(void**) &nFactory
 			);
 
-		LOGWNDF("Created nFactory 0x%p\n", *nFactory);
+		LOGSTRF("Created nFactory 0x%p\n", *nFactory);
 
 		nFactory->QueryInterface(__uuidof(IDXGIFactory), pFactory);
 
-		LOGWNDF("Got oldass interface pFactory 0x%p\n", *pFactory);
+		LOGSTRF("Got oldass interface pFactory 0x%p\n", *pFactory);
 
 		return result;
 	};
@@ -123,14 +123,15 @@ namespace OVRInject {
 		ID3D11Texture2D* pBuffer;
 		pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBuffer);
 
-		{
-			hmdSupport.SubmitTexture(0, pBuffer);
-			hmdSupport.PostPresent();
-		}
+		hmdSupport.SubmitTexture(0, pBuffer);
+
+		HRESULT result = Original_PresentHook(pSwapChain, SyncInterval, Flags);
+
+		hmdSupport.PostPresent();
 
 		pBuffer->Release();
 
-		return S_OK;
+		return result;
 	}
 
 	typedef HRESULT(__stdcall *CreateTexture2DHook)(

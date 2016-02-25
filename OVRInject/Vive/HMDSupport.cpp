@@ -5,77 +5,44 @@
 
 #include <string>
 
-#include "../Log.hpp"
+#include "Log.hpp"
 
 using namespace OVRInject;
 using namespace vr;
 
-HMDSupport::HMDSupport()
-	: device(nullptr)
-{
+HMDSupport::HMDSupport() :
+    device_(nullptr) { }
 
-}
+HMDSupport::~HMDSupport() { }
 
-HMDSupport::~HMDSupport()
-{
+bool HMDSupport::Initialize(IDXGISwapChain* swap_chain, ID3D11Device* device) {
+	swap_chain_ = swap_chain;
+	device_ = device;
 
-}
+	device_->GetImmediateContext(&device_context_);
 
-bool HMDSupport::Initialize(IDXGISwapChain* swapChain, ID3D11Device* device, bool compatibilityMode)
-{
-	OpenGLCompatibilityMode = compatibilityMode;
+  EVRInitError error = VRInitError_None;
+  hmd_ = VR_Init(&error);
+  compositor_ = VRCompositor();
 
-	if (OpenGLCompatibilityMode)
+	if (error)
 	{
-		// TODO:
-		// GetForegroundWindow() here instead of a proper window creation
-		// introduces a possible race condition and point of failure.
-		PIXELFORMATDESCRIPTOR pfd;
-		HDC dc = GetDC(GetForegroundWindow());
-		GLuint PixelFormat = ChoosePixelFormat(dc, &pfd);
-		SetPixelFormat(dc, PixelFormat, &pfd);
-		HGLRC hRC = wglCreateContext(dc);
-		wglMakeCurrent(dc, hRC);
-
-		if (glewInit() != GLEW_OK)
-		{
-			LOGWNDF("Failed to initialize GLEW");
-			return false;
-		}
-
-		if (WGLEW_NV_DX_interop)
-		{
-			gldxDevice = wglDXOpenDeviceNV(device);
-			if (gldxDevice == 0)
-			{
-				LOGWNDF("Failed to initialize NV_DX_interop, this GPU may be unsupported by GTA: V OpenVR");
-				return false;
-			}
-		}
-		else
-		{
-			LOGWNDF("No extension \"NV_DX_interop\" found, this GPU may be unsupported by GTA: V OpenVR");
-			return false;
-		}
-	}
-
-	EVRInitError eError = VRInitError_None;
-	hmd = VR_Init(&eError);
-	compositor = VRCompositor();
-
-	this->swapChain = swapChain;
-	this->device = device;
-
-	if (eError)
-	{
-		hmd = NULL;
+		hmd_ = NULL;
 
 		LOGSTRF("HMDSupport Initialize error: %s", VR_GetVRInitErrorAsEnglishDescription(eError));
 
 		return false;
 	}
 
-	LOGSTRF("Successfully initialized HMDSupport");
+	LOGSTRF("Beginning HMD Polling thread..\n");
+	pollHMDPoseThreadHandle = CreateThread(NULL, 0, PollHMDPose, (void*)this, 0, &pollHMDPoseThreadID);
+
+	if (!pollHMDPoseThreadHandle)
+	{
+		LOGSTRF("Failed to create HMD Polling thread\n");
+	}
+
+	LOGSTRF("Successfully initialized HMDSupport\n");
 
 	return true;
 }
@@ -124,102 +91,8 @@ void HMDSupport::SubmitTexture(int eyeIndex, ID3D11Texture2D* texture)
 {
 	if (OpenGLCompatibilityMode)
 		AddPossibleEyeTexture(0, texture);
-
-	VREvent_t event;
-	while (hmd->PollNextEvent(&event, sizeof(event)))
-	{
-		switch (event.eventType)
-		{
-		case VREvent_TrackedDeviceActivated:
-			LOGSTRF("Device %u attached.\n", event.trackedDeviceIndex);
-			break;
-
-		case VREvent_TrackedDeviceDeactivated:
-			LOGSTRF("Device %u detached.\n", event.trackedDeviceIndex);
-			break;
-
-		case VREvent_TrackedDeviceUpdated:
-			LOGSTRF("Device %u updated.\n", event.trackedDeviceIndex);
-			break;
-		}
-	}
-
-	compositor->WaitGetPoses(trackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
-
-	int m_iValidPoseCount = 0;
-	std::string m_strPoseClasses = "";
-	for (int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
-	{
-		if (trackedDevicePose[nDevice].bPoseIsValid)
-		{
-			m_iValidPoseCount++;
-		}
-	}
-
-	if (eyeIndex == 0) {
-		// Find the shared texture bound to the texture passed in
-		// For now, we just use a monoscopic texture.
-		if (OpenGLCompatibilityMode)
-		{
-			EyeBuffer* eb = GetEyeBufferFromTexture(texture);
-
-			usedSharedTextureHandles.push_back(eb->dxSharedTexHandle);
-
-			wglDXLockObjectsNV(gldxDevice, 1, &eb->dxSharedTexHandle);
-
-			// TODO:
-			// Correct aspect ratio in-game
-
-			// OGL mode requires the vertical component flipped
-			VRTextureBounds_t bounds;
-			bounds.uMax = 0.75f;
-			bounds.uMin = 0.25f;
-			bounds.vMax = 0.0f;
-			bounds.vMin = 1.0f;
-
-			{
-				vr::Texture_t leftTex = { (void*)texture, vr::API_DirectX, vr::ColorSpace_Gamma };
-				vr::EVRCompositorError err = compositor->Submit(Eye_Left, &leftTex, &bounds);
-
-				if (err)
-					LogCompositorError(err);
-			}
-
-			{
-				vr::Texture_t rightTex = { (void*)texture , vr::API_DirectX, vr::ColorSpace_Gamma };
-				vr::EVRCompositorError err = compositor->Submit(Eye_Right, &rightTex, &bounds);
-
-				if (err)
-					LogCompositorError(err);
-			}
-		}
-		else
-		{
-			// TODO:
-			// Correct aspect ratio in-game
-			VRTextureBounds_t bounds;
-			bounds.uMax = 0.75f;
-			bounds.uMin = 0.25f;
-			bounds.vMax = 1.0f;
-			bounds.vMin = 0.0f;
-
-			{
-				vr::Texture_t leftTex = { (void*)texture, vr::API_DirectX, vr::ColorSpace_Gamma };
-				vr::EVRCompositorError err = compositor->Submit(Eye_Left, &leftTex, &bounds);
-
-				if (err)
-					LogCompositorError(err);
-			}
-
-			{
-				vr::Texture_t rightTex = { (void*)texture , vr::API_DirectX, vr::ColorSpace_Gamma };
-				vr::EVRCompositorError err = compositor->Submit(Eye_Right, &rightTex, &bounds);
-
-				if (err)
-					LogCompositorError(err);
-			}
-		}
-	}
+	
+	currentBuffer = texture;
 }
 
 void HMDSupport::PostPresent()
@@ -295,4 +168,65 @@ EyeBuffer* HMDSupport::GetEyeBufferFromTexture(ID3D11Texture2D* tex)
 	}
 
 	return NULL;
+}
+
+DWORD WINAPI HMDSupport::PollHMDPose(void* param)
+{
+	HMDSupport* hmdSupport = (HMDSupport*)param;
+
+	while (true) {
+		VREvent_t event;
+		while (hmdSupport->hmd->PollNextEvent(&event, sizeof(event)))
+		{
+			switch (event.eventType)
+			{
+			case VREvent_TrackedDeviceActivated:
+				LOGSTRF("Device %u attached.\n", event.trackedDeviceIndex);
+				break;
+
+			case VREvent_TrackedDeviceDeactivated:
+				LOGSTRF("Device %u detached.\n", event.trackedDeviceIndex);
+				break;
+
+			case VREvent_TrackedDeviceUpdated:
+				LOGSTRF("Device %u updated.\n", event.trackedDeviceIndex);
+				break;
+			}
+		}
+
+		//compositor->WaitGetPoses(trackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+
+		// Find the shared texture bound to the texture passed in
+		// For now, we just use a monoscopic texture.
+		// TODO:
+		// Correct aspect ratio in-game
+		VRTextureBounds_t bounds;
+		bounds.uMax = 0.75f;
+		bounds.uMin = 0.25f;
+		bounds.vMax = 1.0f;
+		bounds.vMin = 0.0f;
+
+		if (hmdSupport->currentBuffer != nullptr)
+		{
+			{
+				vr::Texture_t leftTex = { (void*)hmdSupport->currentBuffer, vr::API_DirectX, vr::ColorSpace_Gamma };
+				vr::EVRCompositorError err = hmdSupport->compositor->Submit(Eye_Left, &leftTex, &bounds);
+
+				if (err)
+					hmdSupport->LogCompositorError(err);
+			}
+
+			{
+				vr::Texture_t rightTex = { (void*)hmdSupport->currentBuffer , vr::API_DirectX, vr::ColorSpace_Gamma };
+				vr::EVRCompositorError err = hmdSupport->compositor->Submit(Eye_Right, &rightTex, &bounds);
+
+				if (err)
+					hmdSupport->LogCompositorError(err);
+			}
+		}
+
+		vr::EVRCompositorError err = hmdSupport->compositor->WaitGetPoses(hmdSupport->trackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+	}
+
+	return 1;
 }

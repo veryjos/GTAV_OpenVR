@@ -20,7 +20,7 @@ D3D11DetourManager::D3D11DetourManager()
 	LOGSTRF("D3D11Module: 0x%p\n", d3d11Module);
 
 	dxgiModule = LoadLibrary(L"dxgi.dll");
-	LOGWNDF("DXGIModule: 0x%p\n", dxgiModule);
+	LOGSTRF("DXGIModule: 0x%p\n", dxgiModule);
 
 	MakeDetour<Detour_D3D11CreateDevice>(
 		GetProcAddress(d3d11Module, "D3D11CreateDevice")
