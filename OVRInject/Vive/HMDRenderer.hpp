@@ -2,6 +2,15 @@
 
 #include <Windows.h>
 #include <d3d11.h>
+#include <dxgi.h>
+
+#include "HMDSupport.hpp"
+
+#include "atomicops.h"
+#include "readerwriterqueue.h"
+
+// ReaderWriterQueue's namespace
+using namespace moodycamel;
 
 namespace OVRInject
 {
@@ -14,7 +23,7 @@ namespace OVRInject
 	*/
 	class HMDRenderer {
 	public:
-		HMDRenderer();
+		HMDRenderer(HMDSupport* hmd_support);
 		virtual ~HMDRenderer();
 
 		/**
@@ -29,7 +38,7 @@ namespace OVRInject
 		screen. This call only blocks to copy the texture into a
 		texture on our buffer list
 		*/
-		virtual void PushFrame(ID3D11Texture2D* texture);
+		virtual void SubmitFrameTexture(const int& eye_index, const ID3D11Texture2D* texture);
 
 		/**
 		Stops the rendering thread and kills any resources
@@ -38,6 +47,15 @@ namespace OVRInject
 		virtual void Uninitialize();
 
 	private:
+    /**
+    The HMDSupport instance that created this renderer
+    */
+    HMDSupport* hmd_support_;
+
+    /**
+    Holds references to textures that are submitted to OpenVR,
+    and if they're been consumed or not.
+    */
 		struct FrameTexture {
 			FrameTexture() : texture(nullptr), consumed(false) { };
 
@@ -45,13 +63,43 @@ namespace OVRInject
 			bool consumed;
 		};
 
+    /**
+    Initializes the render targets for each eye
+    */
+    void InitializeRenderTargets();
+
+    /**
+    Initializes the frame textures, using the texture passed in
+    as a template.
+    */
+    void InitializeFrameTextures(ID3D11Texture2D* base_texture_);
+
+    static DWORD WINAPI RenderThreadEntry(void* param);
+    void RenderThread();
+
 		HANDLE thread_handle_;
 		DWORD thread_id_;
 
 		/**
-		A buffer to hold the frame textures that are are passed
-		to OpenVR
+		A buffer to hold the frame textures that are are passed to OpenVR
 		*/
 		FrameTexture texture_buffer_[NUM_TEXTURES_TO_BUFFER];
+    
+    /**
+    Lockless queue for safe multithreaded consumption of textures
+    */
+    ReaderWriterQueue<FrameTexture> texture_queue_;
+
+    IDXGISwapChain* swap_chain_;
+    ID3D11Device* device_;
+    ID3D11DeviceContext* device_context_;
+
+    ID3D11Texture2D* rt_texture_left_;
+    ID3D11RenderTargetView* rt_view_left_;
+
+    ID3D11Texture2D* rt_texture_right_;
+    ID3D11RenderTargetView* rt_view_right_;
+
+    ID3D11ShaderResourceView* shader_;
 	};
 };

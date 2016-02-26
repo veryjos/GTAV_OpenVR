@@ -1,15 +1,18 @@
 #pragma once
 
-#include <d3d11.h>
 #include "openvr.h"
 
-#include "GL/glew.h"
-#include "GL/wglew.h"
-
 #include <vector>
+#include <d3d11.h>
+
+using namespace vr;
 
 namespace OVRInject
 {
+  // Forward declaration required here, circular
+  // dependency
+  class HMDRenderer;
+
 	/**
 	HMDSupport is a wrapper class for all-inclusive OpenVR support
 	*/
@@ -25,22 +28,36 @@ namespace OVRInject
 		bool Initialize(IDXGISwapChain* swap_chain, ID3D11Device* device);
 
 		/**
-		Submits a screen texture to an eye from D3D
+		Submits a screen texture to an eye from D3D. Safe to call from any
+    thread.
 		*/
-		void SubmitTexture(int eye_index, ID3D11Texture2D* texture);
+		void SubmitFrameTexture(int eye_index, ID3D11Texture2D* texture);
 
-		/**
-		Must be called after calling D3D Present
-		*/
-		void PostPresent();
+    /**
+    Gets the OpenVR HMD instantiated by this support class
+    */
+    inline IVRSystem* get_hmd() const {
+      return hmd_;
+    };
+
+    /**
+    Gets the OpenVR HMD instantiated by this support class
+    */
+    inline IVRCompositor* get_compositor() const {
+      return compositor_;
+    };
 
 	private:
-		ID3D11Device* device_;
-		ID3D11DeviceContext* device_context_;
+    void LogCompositorError(EVRCompositorError error);
 
-		IDXGISwapChain* swap_chain_;
+    HMDRenderer* renderer_;
 
-		vr::IVRSystem* hmd_;
-		vr::IVRCompositor* compositor_;
+		IVRSystem* hmd_;
+    IVRCompositor* compositor_;
+
+    ID3D11Device* device_;
+    ID3D11DeviceContext* device_context_;
+
+    IDXGISwapChain* swap_chain_;
 	};
 }

@@ -111,7 +111,7 @@ namespace OVRInject {
 			ID3D11Device* device;
 			pSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&device);
 
-			hmdSupport.Initialize(pSwapChain, device, false);
+			hmdSupport.Initialize(pSwapChain, device);
 
 			first_deviceAndChain = false;
 
@@ -123,11 +123,9 @@ namespace OVRInject {
 		ID3D11Texture2D* pBuffer;
 		pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBuffer);
 
-		hmdSupport.SubmitTexture(0, pBuffer);
+		hmdSupport.SubmitFrameTexture(0, pBuffer);
 
 		HRESULT result = Original_PresentHook(pSwapChain, SyncInterval, Flags);
-
-		hmdSupport.PostPresent();
 
 		pBuffer->Release();
 

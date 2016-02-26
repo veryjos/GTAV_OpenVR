@@ -1,11 +1,11 @@
 #include "D3D11DetourManager.hpp"
 
-#include "../D3DHook/D3DHooks.hpp"
+#include "D3DHook/D3DHooks.hpp"
 
 #include <d3d11.h>
 #include <dxgi.h>
 
-#include "../Log.hpp"
+#include "Log.hpp"
 
 using namespace OVRInject;
 
