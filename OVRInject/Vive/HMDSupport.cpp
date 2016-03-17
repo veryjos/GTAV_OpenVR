@@ -43,44 +43,6 @@ bool HMDSupport::Initialize(IDXGISwapChain* swap_chain, ID3D11Device* device) {
 	return true;
 }
 
-void HMDSupport::LogCompositorError(EVRCompositorError error) {
-	if (error != VRCompositorError_None) {
-		switch (error) {
-		case VRCompositorError_DoNotHaveFocus:
-			LOGSTRF("Error: VRCompositorError_DoNotHaveFocus\n");
-			break;
-
-		case VRCompositorError_IncompatibleVersion:
-			LOGSTRF("Error: VRCompositorError_IncompatibleVersion\n");
-			break;
-
-		case VRCompositorError_InvalidTexture:
-			LOGSTRF("Error: VRCompositorError_InvalidTexture\n");
-			break;
-
-		case VRCompositorError_IsNotSceneApplication:
-			LOGSTRF("Error: VRCompositorError_IsNotSceneApplication\n");
-			break;
-
-		case VRCompositorError_SharedTexturesNotSupported:
-			LOGSTRF("Error: VRCompositorError_SharedTexturesNotSupported\n");
-			break;
-
-		case VRCompositorError_TextureIsOnWrongDevice:
-			LOGSTRF("Error: VRCompositorError_TextureIsOnWrongDevice\n");
-			break;
-
-		case VRCompositorError_TextureUsesUnsupportedFormat:
-			LOGSTRF("Error: VRCompositorError_TextureUsesUnsupportedFormat\n");
-			break;
-
-		default:
-			LOGSTRF("Error: Unknown VRCompositorError\n");
-			break;
-		}
-	}
-}
-
 void HMDSupport::SubmitFrameTexture(int eye_index, ID3D11Texture2D* texture)
 {
   renderer_->SubmitFrameTexture(eye_index, texture);

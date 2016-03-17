@@ -48,8 +48,6 @@ namespace OVRInject
     };
 
 	private:
-    void LogCompositorError(EVRCompositorError error);
-
     HMDRenderer* renderer_;
 
 		IVRSystem* hmd_;

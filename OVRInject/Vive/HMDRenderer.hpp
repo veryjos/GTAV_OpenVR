@@ -74,6 +74,8 @@ namespace OVRInject
     */
     void InitializeFrameTextures(ID3D11Texture2D* base_texture_);
 
+    void InitializeFrameRenderModels();
+
     static DWORD WINAPI RenderThreadEntry(void* param);
     void RenderThread();
 
@@ -99,6 +101,14 @@ namespace OVRInject
 
     ID3D11Texture2D* rt_texture_right_;
     ID3D11RenderTargetView* rt_view_right_;
+
+    ID3D11Texture2D* depth_texture_left_;
+    ID3D11DepthStencilState* depth_state_left_;
+    ID3D11DepthStencilView* depth_view_left_;
+
+    ID3D11Texture2D* depth_texture_right_;
+    ID3D11DepthStencilState* depth_state_right_;
+    ID3D11DepthStencilView* depth_view_right_;
 
     ID3D11ShaderResourceView* shader_;
 	};
