@@ -1,3 +1,5 @@
+#include "targetver.h"
+
 #include "DetourManager.hpp"
 
 using namespace OVRInject;

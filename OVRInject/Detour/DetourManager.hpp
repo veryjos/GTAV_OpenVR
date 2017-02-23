@@ -1,4 +1,6 @@
 #pragma once
+#include "targetver.h"
+
 
 #include "DetouredFuncs.hpp"
 

@@ -1,3 +1,5 @@
+#include "targetver.h"
+
 #include <Windows.h>
 #include <Psapi.h>
 #include <tchar.h>

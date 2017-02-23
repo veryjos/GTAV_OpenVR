@@ -1,3 +1,5 @@
+#include "targetver.h"
+
 #include "D3D11DetourManager.hpp"
 
 #include "D3DHook/D3DHooks.hpp"

@@ -484,9 +484,6 @@ bool CMainApplication::BInitCompositor()
 		return false;
 	}
 
-	int32_t test;
-	m_pHMD->GetDXGIOutputInfo(&test);
-
 	return true;
 }
 
@@ -677,11 +674,7 @@ void CMainApplication::RenderFrame()
 		RenderDistortion();
 
 		vr::Texture_t leftEyeTexture = {(void*)leftEyeDesc.m_nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
-		vr::EVRCompositorError e = vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture );
-		if (e != vr::VRCompositorError_None)
-		{
-			int j = e;
-		}
+		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture );
 		vr::Texture_t rightEyeTexture = {(void*)rightEyeDesc.m_nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture );
 	}
@@ -1675,14 +1668,14 @@ CGLRenderModel *CMainApplication::FindOrLoadRenderModel( const char *pchRenderMo
 	if( !pRenderModel )
 	{
 		vr::RenderModel_t *pModel = NULL;
-		if ( !vr::VRRenderModels()->LoadRenderModel_Async( pchRenderModelName, &pModel ) || pModel == NULL )
+		if ( !vr::VRRenderModels()->LoadRenderModel( pchRenderModelName, &pModel ) || pModel == NULL )
 		{
 			dprintf( "Unable to load render model %s\n", pchRenderModelName );
 			return NULL; // move on to the next tracked device
 		}
 
 		vr::RenderModel_TextureMap_t *pTexture = NULL;
-		if ( !vr::VRRenderModels( )->LoadTexture_Async( pModel->diffuseTextureId, &pTexture ) || pTexture == NULL )
+		if ( !vr::VRRenderModels( )->LoadTexture( pModel->diffuseTextureId, &pTexture ) || pTexture == NULL )
 		{
 			dprintf( "Unable to load render texture id:%d for render model %s\n", pModel->diffuseTextureId, pchRenderModelName );
 			vr::VRRenderModels()->FreeRenderModel( pModel );

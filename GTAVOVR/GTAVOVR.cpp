@@ -1,5 +1,6 @@
 #include "adminCheck.hpp"
 #include <string>
+#include <Windows.h>
 
 int failure();
 
@@ -84,9 +85,22 @@ int main()
 		L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows",
 		0, KEY_SET_VALUE | KEY_WOW64_64KEY, &key) == ERROR_SUCCESS)
 	{
-		printf("Installing global hook for GTA: V..\n");
+		printf("Setting up DLL hook for GTA: V..\n");
 
-		std::wstring dllPath = L"F:\\moddedgta\\OVRInjectShim.dll";
+    TCHAR cCurrentPath[FILENAME_MAX * 4];
+    
+    if (!_wgetcwd(cCurrentPath, sizeof(cCurrentPath) / 2))
+    {
+      printf("Failed to get CWD for GTA: V");
+      return errno;
+    }
+
+    printf("CWD is %ls\n", cCurrentPath);
+
+    std::wstring dllPath(cCurrentPath);
+    dllPath += L"\\OVRInjectShim.dll";
+
+    printf("shim dll: %ls\n", dllPath.c_str());
 
 		if (RegSetValueEx(key,
 			L"AppInit_DLLs", 0, REG_SZ,
@@ -101,8 +115,6 @@ int main()
 			return failure("Failed to set LoadAppInit_DLLs\n");
 
 		printf("Press enter to close..\n");
-
-		RegCloseKey(key);
 
 		getchar();
 	}

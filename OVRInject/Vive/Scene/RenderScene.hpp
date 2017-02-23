@@ -1,4 +1,6 @@
 #pragma once
+#include "targetver.h"
+
 
 #include <Windows.h>
 #include <d3d11.h>
@@ -40,6 +42,8 @@ namespace OVRInject
     Adds an object to the scene.
     */
     virtual void AddObject(Object* object);
+
+    virtual CameraObject* GetCamera();
 
   private:
     /**

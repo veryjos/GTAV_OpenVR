@@ -41,7 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -110,7 +110,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\ThirdParty\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\dev\GTAVOVR\x64\Debug\OVRInject.dll" "F:\moddedgta\OVRInject.dll"</Command>
+      <Command>copy "C:\dev\GTAVOVR\x64\Debug\OVRInject.dll" "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\OVRInject.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,7 +150,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\ThirdParty\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\dev\GTAVOVR\x64\Release\OVRInject.dll" "F:\moddedgta\OVRInject.dll"</Command>
+      <Command>copy "C:\dev\GTAVOVR\x64\Release\OVRInject.dll" "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\OVRInject.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -159,12 +159,17 @@
     <ClInclude Include="Detour\DetouredFuncs.hpp" />
     <ClInclude Include="Detour\DetourManager.hpp" />
     <ClInclude Include="Log.hpp" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="Vive\HMDRenderer.hpp" />
     <ClInclude Include="Vive\HMDSupport.hpp" />
+    <ClInclude Include="Vive\Math\Helpers.hpp" />
+    <ClInclude Include="Vive\Math\Matrices.h" />
+    <ClInclude Include="Vive\Math\Vectors.h" />
     <ClInclude Include="Vive\Scene\CameraObject.hpp" />
     <ClInclude Include="Vive\Scene\Object.hpp" />
     <ClInclude Include="Vive\Scene\RenderScene.hpp" />
     <ClInclude Include="Vive\Scene\SimpleShader.hpp" />
+    <ClInclude Include="Vive\TrackedController.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Detour\D3D11DetourManager.cpp" />
@@ -186,8 +191,10 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Vive\HMDRenderer.cpp" />
     <ClCompile Include="Vive\HMDSupport.cpp" />
+    <ClCompile Include="Vive\Math\Matrices.cpp" />
     <ClCompile Include="Vive\Scene\Object.cpp" />
     <ClCompile Include="Vive\Scene\RenderScene.cpp" />
+    <ClCompile Include="Vive\TrackedController.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

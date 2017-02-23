@@ -107,7 +107,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\dev\GTAVOVR\x64\Debug\OVRInjectShim.dll" "F:\moddedgta\OVRInjectShim.dll"</Command>
+      <Command>copy "C:\dev\GTAVOVR\x64\Debug\OVRInjectShim.dll" "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\OVRInjectShim.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -144,7 +144,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\dev\GTAVOVR\x64\Release\OVRInjectShim.dll" "F:\moddedgta\OVRInjectShim.dll"</Command>
+      <Command>copy "C:\dev\GTAVOVR\x64\Release\OVRInjectShim.dll" "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\OVRInjectShim.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -162,6 +162,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Log.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Log.hpp" />
