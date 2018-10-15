@@ -1,6 +1,6 @@
 ## GTA: Vive
 
-VR support for Grand Theft Auto: V using OpenVR. Still somewhat work in progress.
+VR support for Grand Theft Auto: V using OpenVR, some reverse engineering of the game's renderer, and Script Hook V. Still somewhat work in progress.
 
 Watch a short clip:
 
